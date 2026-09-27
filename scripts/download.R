@@ -16,10 +16,6 @@ library(tidyr) #
 renv::snapshot()
 
 
-
-
-setwd("C:\\Users\\follo\\OneDrive\\Documents\\Big Brain\\6th Semester\\GLM\\Trabalho\\repository\\trabalho-sme0823")
-
 df_muni <- read_excel("data\\raw\\indicadorAids_dados.xlsx") #variável resposta
 df_cod <- read_excel('data\\raw\\indicadorAIDS_codigos.xlsx') #variável auxiliar
 
@@ -44,6 +40,6 @@ lit_rate_raw <- get_sidra(api = "/t/9543/n6/all/v/all/p/2022") #Variável de Con
 
 #write_csv(lit_rate_raw,'data/raw/literacy_data.csv') exportando os dados de alfabetizados
 
-cad_unico_raw <- read.csv("Raw Data\\cadunico_data.csv") #Variável Cadastros no CadUnico
+cad_unico_raw <- read.csv("data\\raw\\\\cadunico_data.csv") #Variável Cadastros no CadUnico
 
-aps_coverage_raw <- read_xlsx("Raw Data\\cobertura-aps.xlsx") #Variável Cobertura APS (Atenção Primária a Saúde)
+aps_coverage_raw <- read_xlsx("data\\raw\\\\cobertura-aps.xlsx") #Variável Cobertura APS (Atenção Primária a Saúde)
