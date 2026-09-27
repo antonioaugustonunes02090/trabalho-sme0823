@@ -97,7 +97,7 @@ cad_unc <- cad_unico_raw %>%
   ) %>%
   left_join(pop_clean, by = "code_ibge") %>% #Utilizando o total populacional
   mutate(
-    cadun_ratio = pmin(avg_cadun_registers / pop_total,1.0) #calculando a proporção de registros no cadunico
+    cadun_ratio = avg_cadun_registers / pop_total #pmin(avg_cadun_registers / pop_total,1.0) #calculando a proporção de registros no cadunico
   ) %>% # setando o maxímo para 1
   dplyr::select(code_ibge, cadun_ratio) #selecionando apenas as colunas de interesse: codigo ibge e a razão de registros no CadUnico
 
@@ -137,14 +137,19 @@ avg_study = avg_study_raw %>%
 
 people_in_bf_raw = read.csv('data\\raw\\people_in_bolsa_familia.csv',fileEncoding = 'latin1') #Número de pessoas inscritas no BF
 
-bf_people_data=people_in_bf_raw %>% 
+bf_data=people_in_bf_raw %>% 
   mutate(ano=as.Date(paste0('01/',Referência),format="%d/%m/%Y"), #transformar em objeto data
          code_ibge=as.character(Código)) %>% #transformar codigo ibge em string
   group_by(Código) %>%
-  slice_max(order_by = ano, n = 1, with_ties = FALSE) %>% #selecionar a data mais atual (até 20244)
+  slice_max(order_by = ano, n = 1, with_ties = FALSE) %>% #selecionar a data mais atual (até 2024)
   ungroup() %>%
   select(code_ibge = code_ibge,
-         bf_people = `Pessoas.beneficiárias.no.PBF..a.partir.de.Mar.2023.`) #selecionando as colunas de interesse
+         bf_people = `Pessoas.beneficiárias.no.PBF..a.partir.de.Mar.2023.`)%>% #selecionando as colunas de interesse
+  left_join(pop_clean, by = "code_ibge") %>% #Utilizando o total populacional
+  mutate(bf_ratio = pmin(bf_people/pop_total,1.0)) %>% #Retirando a proporção de pessoas no Bolsa Familia
+  select(code_ibge = code_ibge, #selecionando as colunas de interesse
+         bf_ratio=bf_ratio)
+
 
 
 df = hiv_2024 %>% #Juntando todos os dados por código ibge (cidade)
@@ -155,9 +160,9 @@ df = hiv_2024 %>% #Juntando todos os dados por código ibge (cidade)
   left_join(aps_cover,by='code_ibge') %>%
   left_join(pib,by='code_ibge') %>%
   left_join(avg_study,by='code_ibge')%>%
-  left_join(bf_people_data,by='code_ibge') %>%
+  left_join(bf_data,by='code_ibge') %>%
   drop_na() #Retirando as cidades que não possuem todas informações
 
-#write_csv(df,"data\\processed\\processed_df.csv") exportando os dados processados
+write_csv(df,"data\\processed\\processed_df.csv") #exportando os dados processados
 
 #dim(df)  >>> 5568 13  | 5568 cidades 
