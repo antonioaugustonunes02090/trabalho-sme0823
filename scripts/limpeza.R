@@ -60,13 +60,15 @@ health_units <- cnes %>%
     specialized_clinics = sum(TP_UNID == "36", na.rm = TRUE),
   ) %>%
   rename(code_ibge = CODUFMUN) %>% #Renomeando para code_ibge
-  mutate(has_specialized_clinics=ifelse(specialized_clinics>0,1,0)) %>% #adicionando a indicadora de clínicas especializadas
-  mutate(propor_specialized_clinics=has_specialized_clinics/total_health_units) %>% #adicionando a proporção de clinicas especializadas por total de unidades de saúde
-  dplyr::select(
-    code_ibge=code_ibge, #Selecionando as colunas de interesse: codigo ibge, proporção, total de clinicas especilizadas e
-    total_health_units = total_health_units, #o total de clinicas
+  mutate(has_specialized_clinics=ifelse(specialized_clinics>0,1,0), #adicionando a indicadora de clínicas especializadas
+         propor_specialized_clinics=has_specialized_clinics/total_health_units)%>%#adicionando a proporção de clinicas especializadas por total de unidades de saúde
+  left_join(pop_clean, by = "code_ibge") %>% #utilizando o total populacional
+  mutate(health_units_per_10k = total_health_units*10000/pop_total)%>% #adicionando o numero de unidades de saude por 10 mil pessoas
+  select(
+    code_ibge=code_ibge, #Selecionando as colunas de interesse: codigo ibge, proporção, clinicas por 10 mil pessoas e
+    health_units_per_10k = health_units_per_10k,
     propor_specialized_clinics = propor_specialized_clinics,
-    has_specialized_clinics = has_specialized_clinics
+    has_specialized_clinics = has_specialized_clinics #indicadora de clinica especializada
   )
 
 head(health_units)
