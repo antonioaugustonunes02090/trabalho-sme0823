@@ -43,3 +43,9 @@ lit_rate_raw <- get_sidra(api = "/t/9543/n6/all/v/all/p/2022") #Variável de Con
 cad_unico_raw <- read.csv("data\\raw\\\\cadunico_data.csv") #Variável Cadastros no CadUnico
 
 aps_coverage_raw <- read_xlsx("data\\raw\\\\cobertura-aps.xlsx") #Variável Cobertura APS (Atenção Primária a Saúde)
+
+pib = read_excel('data\\raw\\pib_per_municipality.xlsx') #Variável PIB per Capita (Municipio)
+
+avg_study = read_excel('data\\raw\\average_years_of_study.xlsx') #Variável Número médio de anos de estudo
+
+people_in_bf = read.csv('data\\raw\\people_in_bolsa_familia.csv',fileEncoding = 'latin1') #Número de pessoas inscritas no BF

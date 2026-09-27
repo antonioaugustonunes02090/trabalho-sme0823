@@ -1,6 +1,10 @@
 #Antonio Augusto Nunes de Souza NUSP 15440698
 # Limpeza dos Dados e Criação da base de dados final
-rm(list=ls(all=T)) 
+rm(list=ls(all=T))
+
+library(arrow)
+library(readr)
+library(readxl)
 
 df_muni <- read_excel("data\\raw\\indicadorAids_dados.xlsx") #variável resposta
 df_cod <- read_excel('data\\raw\\indicadorAIDS_codigos.xlsx') #Variável auxiliar
@@ -110,6 +114,38 @@ aps_cover = aps_coverage_raw %>%
     aps_coverage = `Cobertura APS`#a cobertura potencial do APS (atenção primária da saúde)
   )
 
+pib_raw = read_excel('data\\raw\\pib_per_municipality.xlsx') #Variável PIB per Capita (Municipio)
+
+pib = pib_raw %>%
+  mutate(year = as.numeric(Ano), #Transformar ano em numero
+         code_ibge = as.character(`Código do Município`), #transformar codigo ibge em string
+         code_ibge = substr(code_ibge,1,6))%>% #retirando o digito de validação do codigo ibge
+  group_by(code_ibge) %>% #agrupando por cidade
+  slice_max(order_by = year, n=1, with_ties = F) %>% #pegando informação do maior ano
+  ungroup() %>%
+  select(code_ibge=code_ibge, #selecionando apenas as variaveis de interesse
+         pib_per_capita = `Produto Interno Bruto per capita, \r\na preços correntes\r\n(R$ 1,00)`)
+
+avg_study_raw = read_excel('data\\raw\\average_years_of_study.xlsx') #Variável Número médio de anos de estudo
+
+avg_study = avg_study_raw %>% 
+  mutate(code_ibge=as.character(Codigo), #transformando codigo ibge em string
+         code_ibge=substr(code_ibge,1,6)) %>% #retirando o digito de validação do código ibge
+  select(code_ibge=code_ibge, #selecionando as variáveis de interesse
+         avg_years_study=`Anos de Estudo Médio`)
+
+
+people_in_bf_raw = read.csv('data\\raw\\people_in_bolsa_familia.csv',fileEncoding = 'latin1') #Número de pessoas inscritas no BF
+
+bf_people_data=people_in_bf_raw %>% 
+  mutate(ano=as.Date(paste0('01/',Referência),format="%d/%m/%Y"), #transformar em objeto data
+         code_ibge=as.character(Código)) %>% #transformar codigo ibge em string
+  group_by(Código) %>%
+  slice_max(order_by = ano, n = 1, with_ties = FALSE) %>% #selecionar a data mais atual (até 20244)
+  ungroup() %>%
+  select(code_ibge = code_ibge,
+         bf_people = `Pessoas.beneficiárias.no.PBF..a.partir.de.Mar.2023.`) #selecionando as colunas de interesse
+
 
 df = hiv_2024 %>% #Juntando todos os dados por código ibge (cidade)
   left_join(pop_clean,by='code_ibge') %>%
@@ -117,8 +153,11 @@ df = hiv_2024 %>% #Juntando todos os dados por código ibge (cidade)
   left_join(lit_rate,by='code_ibge') %>%
   left_join(cad_unc,by='code_ibge') %>%
   left_join(aps_cover,by='code_ibge') %>%
+  left_join(pib,by='code_ibge') %>%
+  left_join(avg_study,by='code_ibge')%>%
+  left_join(bf_people_data,by='code_ibge') %>%
   drop_na() #Retirando as cidades que não possuem todas informações
 
 #write_csv(df,"data\\processed\\processed_df.csv") exportando os dados processados
 
-#dim(df) >>> 5568 10  | 5568 cidades 
+#dim(df)  >>> 5568 13  | 5568 cidades 
